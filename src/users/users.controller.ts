@@ -1,20 +1,21 @@
-import {Body, Controller, Delete, Get, HttpStatus, Patch, Post, Req, Res} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Req, Res} from '@nestjs/common';
+import {ApiParam, ApiTags} from "@nestjs/swagger";
+
 import {CreateUserDto} from "./dto/users.dto";
 import {UsersService} from "./users.service";
-import {ApiTags} from "@nestjs/swagger";
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
     constructor(
-        private readonly userService:UsersService
+        private readonly userService: UsersService
     ) {
 
     }
 
     @Get()
-    async getUsers(){
-
+    async getUsersList(@Req() req: any, @Res() res: any) {
+        // return res.status(HttpStatus.OK).json(await this.userService.getUserList())
     }
 
     @Post()
@@ -22,20 +23,20 @@ export class UsersController {
         @Req() req: any,
         @Body() body: CreateUserDto,
         @Res() res: any,
-    ){
+    ) {
         // const user = await this.userService.createUser(body);
         // return user;
 
-        return res.status(HttpStatus.CREATED).json( await this.userService.createUser(body))
+        return res.status(HttpStatus.CREATED).json(await this.userService.createUser(body))
     }
 
-    @Patch('/:id')
-    async updateUser(){
-
+    @ApiParam({name: 'userId', required: true})
+    @Patch('/:userId')
+    async updateUser(@Req() req: any, @Res() res: any, @Param('userId') userId: string) {
     }
 
-    @Delete('/:id')
-    async deleteUser(){
-
+    @Delete('/:userId')
+    async deleteUser(@Req() req: any, @Res() res: any, @Param('userId') userId: string) {
+        return res.statusCode(HttpStatus.OK).json(await this.userService.deleteUser(userId))
     }
 }
