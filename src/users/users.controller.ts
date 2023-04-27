@@ -2,8 +2,10 @@ import {
   Body,
   Controller,
   Delete,
+  forwardRef,
   Get,
   HttpStatus,
+  Inject,
   Param,
   Patch,
   Post,
@@ -23,17 +25,23 @@ import { edirFileName, imageFileFilter } from '../core/file-upload/file.upload';
 import { configs } from '../core/configs';
 import { PetsService } from '../pets/pets.service';
 import { PetDto } from '../pets/dto/pet.dto';
+import { IUsers } from './intarface/users.intarface';
+import { Response } from 'express';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(
+    // @Inject(forwardRef(() => PetsService))
     private readonly userService: UsersService,
     private readonly petsService: PetsService,
   ) {}
 
   @Get()
-  async getUsersList(@Req() req: any, @Res() res: any) {
+  async getUsersList(
+    @Req() req: string,
+    @Res() res: any,
+  ): Promise<Response<IUsers>> {
     return res.status(HttpStatus.OK).json(await this.userService.getUserList());
   }
 
@@ -41,20 +49,18 @@ export class UsersController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination:
-          // path.join('./public/users'),
-          configs.PUBLIC_PICTURE_USERS,
+        destination: configs.PUBLIC_PICTURE_USERS,
         filename: edirFileName,
       }),
       fileFilter: imageFileFilter,
     }),
   )
   async createUser(
-    @Req() req: any,
-    @Body() body: CreateUserDto,
+    @Req() req: string,
+    @Body() body: IUsers,
     @Res() res: any,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<User> {
+  ) {
     if (file) {
       body.avatar = `path.join(configs.PUBLIC_PICTURE_USERS), ${file.filename})`;
     }
@@ -80,13 +86,13 @@ export class UsersController {
   async updateUser(
     @Req() req: any,
     @Res() res: any,
+    @Body() body: CreateUserDto,
     @Param('userId') userId: string,
   ) {
-    // return res
-    //   .status(HttpStatus.OK)
-    //   .json(await this.userService.updateOneUser(body));
+    return res.status(HttpStatus.OK);
+    // .json(await this.userService.updateOneUser(body));
   }
-
+  //
   @ApiParam({ name: 'userId', required: true })
   @Delete('/:userId')
   async deleteUser(
@@ -94,11 +100,12 @@ export class UsersController {
     @Res() res: any,
     @Param('userId') userId: string,
   ) {
-    return res.statusCode(HttpStatus.OK);
-    // .json(await this.userService.deleteUser(userId));
+    return res
+      .statusCode(HttpStatus.OK)
+      .json(await this.userService.deleteUser(userId));
   }
 
-  @Post('/animals/:userId')
+  @Post('/pets/:userId')
   async addNewPets(
     @Req() req: any,
     @Res() res: any,
